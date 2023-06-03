@@ -8,19 +8,26 @@ export async function employeesRoutes(app: FastifyInstance) {
   app.get('/employees', async (request) => {
     await request.jwtVerify()
 
-    const employees = await prisma.user.findMany({
+    const employees = await prisma.employee.findMany({
       include: {
-        employee: true,
+        user: true,
+      },
+      orderBy: {
+        user: {
+          name: 'asc',
+        },
       },
     })
 
     return employees.map((employee) => {
       return {
         id: employee.id,
-        employeeId: employee.employee?.id,
-        name: employee.name,
-        email: employee.email,
-        avatarUrl: employee.avatarUrl,
+        name: employee.user.name,
+        email: employee.user.email,
+        phone: employee.user.phone,
+        cpf: employee.user.cpf,
+        address: employee.user.address,
+        avatarUrl: employee.user.avatarUrl,
       }
     })
   })

@@ -8,24 +8,26 @@ export async function customersRoutes(app: FastifyInstance) {
   app.get('/customers', async (request) => {
     await request.jwtVerify()
 
-    const customers = await prisma.user.findMany({
+    const customers = await prisma.customer.findMany({
       include: {
-        customer: true,
+        user: true,
       },
       orderBy: {
-        name: 'asc',
+        user: {
+          name: 'asc',
+        },
       },
     })
 
     return customers.map((customer) => {
       return {
         id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        cpf: customer.cpf,
-        address: customer.address,
-        avatarUrl: customer.avatarUrl,
+        name: customer.user.name,
+        email: customer.user.email,
+        phone: customer.user.phone,
+        cpf: customer.user.cpf,
+        address: customer.user.address,
+        avatarUrl: customer.user.avatarUrl,
       }
     })
   })
