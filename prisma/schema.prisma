@@ -1,0 +1,183 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+generator erd {
+  provider = "prisma-erd-generator"
+  output   = "./prisma/erd.pdf"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String  @id @default(uuid())
+  name         String
+  cpf          String  @unique
+  phone        String
+  address      String
+  email        String  @unique
+  passwordHash String
+  avatarUrl    String?
+
+  customer Customer?
+  employee Employee?
+  manager  Manager?
+
+  @@map("users")
+}
+
+model Customer {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user     User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rentals  Rental[]
+  Pendency Pendency[]
+
+  @@map("customers")
+}
+
+model Employee {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("employees")
+}
+
+model Manager {
+  id     String @id @default(uuid())
+  userId String @unique
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("managers")
+}
+
+model Category {
+  id   String @id @default(uuid())
+  name String
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id    String @id @default(uuid())
+  name  String
+  phone String
+  email String @unique
+  cnpj  String
+
+  products Product[]
+
+  @@map("suppliers")
+}
+
+model Size {
+  id   String @id @default(uuid())
+  size Int
+
+  productSizes ProductSize[]
+
+  @@map("sizes")
+}
+
+model Color {
+  id   String @id @default(uuid())
+  code String
+  name String
+
+  productColors ProductColor[]
+
+  @@map("colors")
+}
+
+model Product {
+  id          String @id @default(uuid())
+  model       String
+  brand       String
+  description String
+  coverUrl    String
+  categoryId  String
+  supplierId  String
+  hourlyValue Int
+
+  category           Category           @relation(fields: [categoryId], references: [id])
+  supplier           Supplier           @relation(fields: [supplierId], references: [id])
+  productInventories ProductInventory[]
+
+  @@unique([model, brand])
+  @@map("products")
+}
+
+model ProductSize {
+  id        String @id @default(uuid())
+  productId String
+  sizeId    String
+
+  product ProductInventory @relation(fields: [productId], references: [id])
+  size    Size             @relation(fields: [sizeId], references: [id])
+
+  @@map("product_size")
+}
+
+model ProductColor {
+  id        String @id @default(uuid())
+  productId String
+  colorId   String
+
+  product ProductInventory @relation(fields: [productId], references: [id])
+  color   Color            @relation(fields: [colorId], references: [id])
+
+  @@map("product_colors")
+}
+
+model ProductInventory {
+  id        String @id @default(uuid())
+  productId String
+  status    String
+
+  product       Product        @relation(fields: [productId], references: [id])
+  rentals       Rental[]
+  productSizes  ProductSize[]
+  productColors ProductColor[]
+
+  @@map("product_inventory")
+}
+
+model Rental {
+  id         String   @id @default(uuid())
+  customerId String
+  code       String
+  productId  String
+  duration   Int
+  price      Int
+  status     String
+  createdAt  DateTime @default(now())
+
+  customer Customer         @relation(fields: [customerId], references: [id])
+  product  ProductInventory @relation(fields: [productId], references: [id])
+  Pendency Pendency[]
+
+  @@map("rentals")
+}
+
+model Pendency {
+  id         String    @id @default(uuid())
+  customerId String
+  rentalId   String
+  delay      Int
+  value      Int
+  resolvedAt DateTime?
+
+  customer Customer @relation(fields: [customerId], references: [id])
+  rental   Rental   @relation(fields: [rentalId], references: [id])
+
+  @@map("pendencies")
+}
