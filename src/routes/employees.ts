@@ -26,8 +26,6 @@ export async function employeesRoutes(app: FastifyInstance) {
   })
 
   app.post('/employees', async (request, reply) => {
-    await request.jwtVerify()
-
     const bodySchema = z.object({
       name: z.string(),
       cpf: z.string(),
