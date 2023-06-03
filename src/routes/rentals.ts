@@ -18,7 +18,11 @@ export async function rentalsRoutes(app: FastifyInstance) {
     const { status } = querySchema.parse(request.query)
 
     if (!status) {
-      const rentals = await prisma.rental.findMany()
+      const rentals = await prisma.rental.findMany({
+        orderBy: {
+          createdAt: 'desc',
+        },
+      })
 
       return rentals
     }
@@ -28,6 +32,9 @@ export async function rentalsRoutes(app: FastifyInstance) {
         status: {
           contains: status,
         },
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     })
 

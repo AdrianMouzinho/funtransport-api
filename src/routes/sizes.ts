@@ -4,8 +4,10 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 
 export async function sizesRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', async (request) => {
-    await request.jwtVerify()
+  app.get('/sizes', async (request, reply) => {
+    const sizes = await prisma.size.findMany()
+
+    return sizes
   })
 
   app.get('/products/:id/sizes', async (request) => {
@@ -65,6 +67,8 @@ export async function sizesRoutes(app: FastifyInstance) {
   })
 
   app.post('/sizes', async (request, reply) => {
+    await request.jwtVerify()
+
     const bodySchema = z.object({
       size: z.number(),
     })
@@ -89,6 +93,8 @@ export async function sizesRoutes(app: FastifyInstance) {
   })
 
   app.put('/sizes/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -114,6 +120,8 @@ export async function sizesRoutes(app: FastifyInstance) {
   })
 
   app.delete('/sizes/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })

@@ -12,14 +12,19 @@ export async function customersRoutes(app: FastifyInstance) {
       include: {
         customer: true,
       },
+      orderBy: {
+        name: 'asc',
+      },
     })
 
     return customers.map((customer) => {
       return {
         id: customer.id,
-        customerId: customer.customer?.id,
         name: customer.name,
         email: customer.email,
+        phone: customer.phone,
+        cpf: customer.cpf,
+        address: customer.address,
         avatarUrl: customer.avatarUrl,
       }
     })

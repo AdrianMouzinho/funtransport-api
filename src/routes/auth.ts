@@ -23,13 +23,13 @@ export async function authRoutes(app: FastifyInstance) {
     })
 
     if (!user) {
-      return reply.status(400).send({ error: 'Este usuário não existe!' })
+      return reply.status(400).send({ error: 'E-mail ou senha inválidos' })
     }
 
     const isValidPassword = await bcryptjs.compare(password, user.passwordHash)
 
     if (!isValidPassword) {
-      return reply.status(400).send({ error: 'Senha inválida!' })
+      return reply.status(400).send({ error: 'E-mail ou senha inválidos' })
     }
 
     const token = app.jwt.sign(

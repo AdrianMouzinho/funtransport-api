@@ -4,10 +4,6 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 
 export async function colorsRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', async (request) => {
-    await request.jwtVerify()
-  })
-
   app.get('/colors', async () => {
     const colors = await prisma.color.findMany()
 
@@ -72,6 +68,8 @@ export async function colorsRoutes(app: FastifyInstance) {
   })
 
   app.post('/colors', async (request) => {
+    await request.jwtVerify()
+
     const bodySchema = z.object({
       code: z.string(),
       name: z.string(),
@@ -88,6 +86,8 @@ export async function colorsRoutes(app: FastifyInstance) {
   })
 
   app.put('/colors/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -115,6 +115,8 @@ export async function colorsRoutes(app: FastifyInstance) {
   })
 
   app.delete('/colors/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })

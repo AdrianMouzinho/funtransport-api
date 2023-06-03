@@ -4,6 +4,38 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 
 export async function productsRoutes(app: FastifyInstance) {
+  app.get('/productsInventory', async (request) => {
+    await request.jwtVerify()
+
+    const products = await prisma.productInventory.findMany({
+      include: {
+        product: true,
+        productColors: {
+          include: {
+            color: true,
+          },
+        },
+        productSizes: {
+          include: {
+            size: true,
+          },
+        },
+      },
+    })
+
+    return products.map((product) => {
+      return {
+        id: product.id,
+        model: product.product.model,
+        brand: product.product.brand,
+        status: product.status,
+        coverUrl: product.product.coverUrl,
+        color: product.productColors[0].color.code,
+        size: product.productSizes[0].size.size,
+      }
+    })
+  })
+
   app.get('/products', async () => {
     const products = await prisma.product.findMany({
       where: {
@@ -47,36 +79,6 @@ export async function productsRoutes(app: FastifyInstance) {
         category: true,
       },
     })
-
-    // const colors = await prisma.color.findMany({
-    //   where: {
-    //     productColors: {
-    //       some: {
-    //         product: {
-    //           product: {
-    //             id,
-    //           },
-    //           status: 'Disponível',
-    //         },
-    //       },
-    //     },
-    //   },
-    // })
-
-    // const sizes = await prisma.size.findMany({
-    //   where: {
-    //     productSizes: {
-    //       some: {
-    //         product: {
-    //           product: {
-    //             id,
-    //           },
-    //           status: 'Disponível',
-    //         },
-    //       },
-    //     },
-    //   },
-    // })
 
     const availableQuantity = await prisma.productInventory.count({
       where: {
