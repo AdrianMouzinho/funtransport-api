@@ -4,10 +4,6 @@ import { z } from 'zod'
 import { prisma } from '../lib/prisma'
 
 export async function categoriesRoutes(app: FastifyInstance) {
-  app.addHook('preHandler', async (request) => {
-    await request.jwtVerify()
-  })
-
   app.get('/categories', async () => {
     const categories = await prisma.category.findMany()
 
@@ -45,6 +41,8 @@ export async function categoriesRoutes(app: FastifyInstance) {
   })
 
   app.post('/categories', async (request, reply) => {
+    await request.jwtVerify()
+
     const bodySchema = z.object({
       name: z.string(),
     })
@@ -69,6 +67,8 @@ export async function categoriesRoutes(app: FastifyInstance) {
   })
 
   app.put('/categories/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })
@@ -94,6 +94,8 @@ export async function categoriesRoutes(app: FastifyInstance) {
   })
 
   app.delete('/categories/:id', async (request) => {
+    await request.jwtVerify()
+
     const paramsSchema = z.object({
       id: z.string().uuid(),
     })
