@@ -310,9 +310,41 @@ export async function productsRoutes(app: FastifyInstance) {
 
   app.put('/products/:id', async (request) => {
     await request.jwtVerify()
+
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = paramsSchema.parse(request.params)
+
+    const bodySchema = z.object({
+      model: z.string(),
+      brand: z.string(),
+      description: z.string(),
+      hourlyValue: z.number(),
+      coverUrl: z.string().url(),
+    })
+
+    const { brand, coverUrl, description, hourlyValue, model } =
+      bodySchema.parse(request.body)
+
+    const product = await prisma.product.update({
+      where: {
+        id,
+      },
+      data: {
+        brand,
+        coverUrl,
+        description,
+        hourlyValue,
+        model,
+      },
+    })
+
+    return product
   })
 
-  app.delete('/products/:id', async (request) => {
+  app.delete('/productsInventory/:id', async (request) => {
     await request.jwtVerify()
 
     const paramsSchema = z.object({
