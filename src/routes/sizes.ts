@@ -5,7 +5,11 @@ import { prisma } from '../lib/prisma'
 
 export async function sizesRoutes(app: FastifyInstance) {
   app.get('/sizes', async (request, reply) => {
-    const sizes = await prisma.size.findMany()
+    const sizes = await prisma.size.findMany({
+      orderBy: {
+        size: 'asc',
+      },
+    })
 
     return sizes
   })
