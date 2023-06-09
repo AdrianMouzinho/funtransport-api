@@ -314,5 +314,41 @@ export async function productsRoutes(app: FastifyInstance) {
 
   app.delete('/products/:id', async (request) => {
     await request.jwtVerify()
+
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = paramsSchema.parse(request.params)
+
+    const product = await prisma.productInventory.findUniqueOrThrow({
+      where: {
+        id,
+      },
+      include: {
+        productColors: true,
+        productSizes: true,
+      },
+    })
+
+    await prisma.productColor.deleteMany({
+      where: {
+        colorId: product.productColors[0].colorId,
+        productId: product.id,
+      },
+    })
+
+    await prisma.productSize.deleteMany({
+      where: {
+        sizeId: product.productSizes[0].sizeId,
+        productId: product.id,
+      },
+    })
+
+    await prisma.productInventory.delete({
+      where: {
+        id,
+      },
+    })
   })
 }
