@@ -204,7 +204,7 @@ export async function productsRoutes(app: FastifyInstance) {
       supplierId,
     } = bodySchema.parse(request.body)
 
-    let product = await prisma.product.findUnique({
+    const product = await prisma.product.findUnique({
       where: {
         model_brand: {
           brand,
@@ -214,7 +214,7 @@ export async function productsRoutes(app: FastifyInstance) {
     })
 
     if (product) {
-      await prisma.productInventory.create({
+      const productInventory = await prisma.productInventory.create({
         data: {
           productId: product.id,
           status: 'Disponível',
@@ -229,12 +229,32 @@ export async function productsRoutes(app: FastifyInstance) {
             },
           },
         },
+        include: {
+          productColors: {
+            include: {
+              color: true,
+            },
+          },
+          productSizes: {
+            include: {
+              size: true,
+            },
+          },
+        },
       })
 
-      return
+      return {
+        id: productInventory.id,
+        model: product.model,
+        brand: product.brand,
+        status: productInventory.status,
+        coverUrl: product.coverUrl,
+        color: productInventory.productColors[0].color.code,
+        size: productInventory.productSizes[0].size.size,
+      }
     }
 
-    product = await prisma.product.create({
+    const newProduct = await prisma.product.create({
       data: {
         brand,
         model,
@@ -259,9 +279,33 @@ export async function productsRoutes(app: FastifyInstance) {
           },
         },
       },
+      include: {
+        productInventories: {
+          include: {
+            productColors: {
+              include: {
+                color: true,
+              },
+            },
+            productSizes: {
+              include: {
+                size: true,
+              },
+            },
+          },
+        },
+      },
     })
 
-    return product
+    return {
+      id: newProduct.productInventories[0].id,
+      model: newProduct.model,
+      brand: newProduct.brand,
+      status: newProduct.productInventories[0].status,
+      coverUrl: newProduct.coverUrl,
+      color: newProduct.productInventories[0].productColors[0].color.code,
+      size: newProduct.productInventories[0].productSizes[0].size.size,
+    }
   })
 
   app.put('/products/:id', async (request) => {
