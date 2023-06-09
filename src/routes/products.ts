@@ -118,6 +118,9 @@ export async function productsRoutes(app: FastifyInstance) {
           },
         },
       },
+      orderBy: {
+        size: 'asc',
+      },
     })
 
     const possibleSizes = await prisma.size.findMany({
@@ -129,6 +132,9 @@ export async function productsRoutes(app: FastifyInstance) {
             },
           },
         },
+      },
+      orderBy: {
+        size: 'asc',
       },
     })
 
