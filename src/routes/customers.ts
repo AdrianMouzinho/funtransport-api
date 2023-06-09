@@ -103,7 +103,7 @@ export async function customersRoutes(app: FastifyInstance) {
     const { name, cpf, phone, address, email, password, avatarUrl } =
       bodySchema.parse(request.body)
 
-    let customer = await prisma.user.findFirst({
+    const customer = await prisma.user.findFirst({
       where: {
         OR: [{ cpf }, { email }],
       },
@@ -118,7 +118,7 @@ export async function customersRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcryptjs.hash(password, 10)
 
-    customer = await prisma.user.create({
+    const newUser = await prisma.user.create({
       data: {
         name,
         cpf,
@@ -136,7 +136,15 @@ export async function customersRoutes(app: FastifyInstance) {
       },
     })
 
-    return customer
+    return {
+      id: newUser.customer?.id,
+      name: newUser.name,
+      email: newUser.email,
+      phone: newUser.phone,
+      cpf: newUser.cpf,
+      address: newUser.address,
+      avatarUrl: newUser.avatarUrl,
+    }
   })
 
   app.put('/customers/:id', async (request, reply) => {
