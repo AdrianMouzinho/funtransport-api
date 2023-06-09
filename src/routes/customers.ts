@@ -32,6 +32,34 @@ export async function customersRoutes(app: FastifyInstance) {
     })
   })
 
+  app.get('/customers/pendencies', async (request) => {
+    await request.jwtVerify()
+
+    const activePendencies = await prisma.pendency.findMany({
+      where: {
+        customerId: request.user.sub,
+        resolvedAt: null,
+      },
+    })
+
+    const completedPendencies = await prisma.pendency.findMany({
+      where: {
+        customerId: request.user.sub,
+        resolvedAt: {
+          not: null,
+        },
+      },
+      orderBy: {
+        resolvedAt: 'desc',
+      },
+    })
+
+    return {
+      active: [...activePendencies],
+      completed: [...completedPendencies],
+    }
+  })
+
   app.get('/customers/rentals', async (request) => {
     await request.jwtVerify()
 
@@ -40,12 +68,18 @@ export async function customersRoutes(app: FastifyInstance) {
         customerId: request.user.sub,
         status: 'Ativo',
       },
+      orderBy: {
+        createdAt: 'desc',
+      },
     })
 
     const completedRentals = await prisma.rental.findMany({
       where: {
         customerId: request.user.sub,
         OR: [{ status: 'Concluído' }, { status: 'Concluído com atraso' }],
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     })
 
@@ -69,7 +103,7 @@ export async function customersRoutes(app: FastifyInstance) {
     const { name, cpf, phone, address, email, password, avatarUrl } =
       bodySchema.parse(request.body)
 
-    const customer = await prisma.user.findFirst({
+    let customer = await prisma.user.findFirst({
       where: {
         OR: [{ cpf }, { email }],
       },
@@ -84,7 +118,7 @@ export async function customersRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcryptjs.hash(password, 10)
 
-    await prisma.user.create({
+    customer = await prisma.user.create({
       data: {
         name,
         cpf,
@@ -101,6 +135,8 @@ export async function customersRoutes(app: FastifyInstance) {
         customer: true,
       },
     })
+
+    return customer
   })
 
   app.put('/customers/:id', async (request, reply) => {

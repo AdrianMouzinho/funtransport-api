@@ -198,7 +198,7 @@ export async function productsRoutes(app: FastifyInstance) {
       supplierId,
     } = bodySchema.parse(request.body)
 
-    const product = await prisma.product.findUnique({
+    let product = await prisma.product.findUnique({
       where: {
         model_brand: {
           brand,
@@ -228,7 +228,7 @@ export async function productsRoutes(app: FastifyInstance) {
       return
     }
 
-    await prisma.product.create({
+    product = await prisma.product.create({
       data: {
         brand,
         model,
@@ -254,6 +254,8 @@ export async function productsRoutes(app: FastifyInstance) {
         },
       },
     })
+
+    return product
   })
 
   app.put('/products/:id', async (request) => {

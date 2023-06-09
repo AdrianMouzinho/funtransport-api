@@ -46,7 +46,7 @@ export async function employeesRoutes(app: FastifyInstance) {
     const { name, cpf, phone, address, email, password, avatarUrl } =
       bodySchema.parse(request.body)
 
-    const employee = await prisma.user.findFirst({
+    let employee = await prisma.user.findFirst({
       where: {
         OR: [{ cpf }, { email }],
       },
@@ -61,7 +61,7 @@ export async function employeesRoutes(app: FastifyInstance) {
 
     const passwordHash = await bcryptjs.hash(password, 10)
 
-    await prisma.user.create({
+    employee = await prisma.user.create({
       data: {
         name,
         cpf,
@@ -78,6 +78,8 @@ export async function employeesRoutes(app: FastifyInstance) {
         employee: true,
       },
     })
+
+    return employee
   })
 
   app.put('/employees/:id', async (request, reply) => {

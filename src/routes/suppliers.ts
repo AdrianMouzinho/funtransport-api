@@ -22,7 +22,7 @@ export async function suppliersRoutes(app: FastifyInstance) {
 
     const { name, phone, email, cnpj } = bodySchema.parse(request.body)
 
-    const supplier = await prisma.supplier.findUnique({
+    let supplier = await prisma.supplier.findUnique({
       where: {
         email,
       },
@@ -32,7 +32,7 @@ export async function suppliersRoutes(app: FastifyInstance) {
       return reply.status(400).send({ error: 'Este fornecedor já existe!' })
     }
 
-    await prisma.supplier.create({
+    supplier = await prisma.supplier.create({
       data: {
         name,
         phone,
@@ -40,6 +40,8 @@ export async function suppliersRoutes(app: FastifyInstance) {
         cnpj,
       },
     })
+
+    return supplier
   })
 
   app.put('/suppliers/:id', async (request, reply) => {
