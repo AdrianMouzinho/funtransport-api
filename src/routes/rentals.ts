@@ -44,10 +44,14 @@ export async function rentalsRoutes(app: FastifyInstance) {
   app.post('/rentals', async (request, reply) => {
     const bodySchema = z.object({
       productId: z.string().uuid(),
+      colorId: z.string().uuid(),
+      sizeId: z.string().uuid(),
       duration: z.number(),
     })
 
-    const { duration, productId } = bodySchema.parse(request.body)
+    const { productId, colorId, sizeId, duration } = bodySchema.parse(
+      request.body,
+    )
 
     const pendency = await prisma.pendency.findFirst({
       where: {
@@ -65,11 +69,25 @@ export async function rentalsRoutes(app: FastifyInstance) {
 
     const product = await prisma.productInventory.findFirst({
       where: {
-        id: productId,
+        product: {
+          id: productId,
+        },
         status: 'Disponível',
+        productColors: {
+          some: {
+            colorId,
+          },
+        },
+        productSizes: {
+          some: {
+            sizeId,
+          },
+        },
       },
       include: {
         product: true,
+        productColors: true,
+        productSizes: true,
       },
     })
 
@@ -79,6 +97,8 @@ export async function rentalsRoutes(app: FastifyInstance) {
         .send({ error: 'Desculpe, mas este equipamento já está reservado' })
     }
 
+    console.log(product)
+
     const hourlyValue = product.product.hourlyValue
 
     const generate = new ShortUniqueId({ length: 6 })
@@ -87,7 +107,7 @@ export async function rentalsRoutes(app: FastifyInstance) {
     await prisma.rental.create({
       data: {
         customerId: request.user.sub,
-        productId,
+        productId: product.id,
         status: 'Pendente',
         duration,
         price: hourlyValue * (duration / 60),
@@ -97,7 +117,7 @@ export async function rentalsRoutes(app: FastifyInstance) {
 
     await prisma.productInventory.update({
       where: {
-        id: productId,
+        id: product.id,
       },
       data: {
         status: 'Reservado',
