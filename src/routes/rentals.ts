@@ -97,8 +97,6 @@ export async function rentalsRoutes(app: FastifyInstance) {
         .send({ error: 'Desculpe, mas este equipamento já está reservado' })
     }
 
-    console.log(product)
-
     const hourlyValue = product.product.hourlyValue
 
     const generate = new ShortUniqueId({ length: 6 })
