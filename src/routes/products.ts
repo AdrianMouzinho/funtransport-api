@@ -21,6 +21,11 @@ export async function productsRoutes(app: FastifyInstance) {
           },
         },
       },
+      orderBy: {
+        product: {
+          model: 'asc',
+        },
+      },
     })
 
     return products.map((product) => {
