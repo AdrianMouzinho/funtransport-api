@@ -3,6 +3,7 @@ import { z } from 'zod'
 import bcryptjs from 'bcryptjs'
 
 import { prisma } from '../lib/prisma'
+import dayjs from 'dayjs'
 
 export async function customersRoutes(app: FastifyInstance) {
   app.get('/customers', async (request) => {
@@ -58,6 +59,34 @@ export async function customersRoutes(app: FastifyInstance) {
       active: [...activePendencies],
       completed: [...completedPendencies],
     }
+  })
+
+  app.patch('/customers/pendencies/:id', async (request) => {
+    await request.jwtVerify()
+
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = paramsSchema.parse(request.params)
+
+    const pendency = await prisma.pendency.findFirstOrThrow({
+      where: {
+        id,
+        resolvedAt: null,
+      },
+    })
+
+    const updatedPendency = await prisma.pendency.update({
+      where: {
+        id: pendency.id,
+      },
+      data: {
+        resolvedAt: dayjs().toDate(),
+      },
+    })
+
+    return updatedPendency
   })
 
   app.get('/customers/rentals', async (request) => {
