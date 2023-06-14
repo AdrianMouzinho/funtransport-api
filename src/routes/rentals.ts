@@ -278,4 +278,42 @@ export async function rentalsRoutes(app: FastifyInstance) {
       data: { ...updatedRental },
     }
   })
+
+  app.delete('/rentals/:id', async (request, reply) => {
+    const paramsSchema = z.object({
+      id: z.string().uuid(),
+    })
+
+    const { id } = paramsSchema.parse(request.params)
+
+    const rental = await prisma.rental.findUniqueOrThrow({
+      where: {
+        id,
+      },
+    })
+
+    const pendency = await prisma.pendency.findFirst({
+      where: {
+        rentalId: rental.id,
+      },
+    })
+
+    if (pendency) {
+      return reply.status(400).send({
+        error: 'Este aluguel possui um pendência',
+      })
+    }
+
+    if (rental.status !== 'Concluído') {
+      return reply.status(400).send({
+        error: 'Só é possível deletar um aluguel com status concluído',
+      })
+    }
+
+    await prisma.rental.delete({
+      where: {
+        id: rental.id,
+      },
+    })
+  })
 }
